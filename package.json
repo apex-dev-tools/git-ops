@@ -1,0 +1,19 @@
+{
+  "name": "git-diff",
+  "version": "0.0.1",
+  "description": "Iso Git",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.11.19",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "@isomorphic-git/lightning-fs": "^4.6.0",
+    "isomorphic-git": "^1.21.0"
+  }
+}
