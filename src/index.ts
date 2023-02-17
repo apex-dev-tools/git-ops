@@ -6,3 +6,6 @@ export {
   getDefaultBranchDiff,
   getDefaultBranchDiffByRef,
 } from './FilesChanged/BranchChanges';
+
+export { IGit } from './api/IGit';
+export { Git } from './Git/Git';
