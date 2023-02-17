@@ -4,4 +4,4 @@ lib/
 
 test-result.*
 .eslintcache
-
+.DS_Store
