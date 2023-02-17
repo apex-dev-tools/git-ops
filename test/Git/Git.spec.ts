@@ -4,10 +4,10 @@
 
 import { SimpleGit } from 'simple-git';
 import { Git } from '../../src/Git/Git';
-import { TempRepoManager } from '../repo-setup/TempRepoManager';
+import { RepoManager } from '../FsUtils/RepoManager';
 
 describe('Git', () => {
-  const repoManager = TempRepoManager.getInstance('./test/repos');
+  const repoManager = RepoManager.getInstance('./test/repos');
 
   beforeEach(async () => {
     await repoManager.init();
