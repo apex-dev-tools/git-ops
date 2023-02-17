@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ */
+
 import simpleGit, { SimpleGit } from 'simple-git';
 import fs from 'fs';
 import path from 'path';

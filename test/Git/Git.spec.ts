@@ -1,4 +1,7 @@
-// import { getDefaultBranchDiff } from '../../src/FilesChanged/BranchChanges';
+/*
+ * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ */
+
 import { SimpleGit } from 'simple-git';
 import { Git } from '../../src/Git/Git';
 import { TempRepoManager } from '../repo-setup/TempRepoManager';
