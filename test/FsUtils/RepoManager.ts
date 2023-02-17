@@ -6,12 +6,12 @@ import simpleGit, { SimpleGit } from 'simple-git';
 import fs from 'fs';
 import path from 'path';
 
-export class TempRepoManager {
+export class RepoManager {
   private isInit = false;
   private rootDir: string;
   private remoteRepoDir: string;
   private testRepoDir: string;
-  private static instance: TempRepoManager | undefined = undefined;
+  private static instances: Map<string, RepoManager> = new Map();
 
   private constructor(rootDir: string) {
     this.rootDir = rootDir;
@@ -19,9 +19,11 @@ export class TempRepoManager {
     this.testRepoDir = rootDir + '/test-repo';
   }
 
-  public static getInstance(rootDir: string) {
-    if (!this.instance) this.instance = new TempRepoManager(rootDir);
-    return this.instance;
+  public static getInstance(rootDir: string): RepoManager {
+    if (!this.instances.has(rootDir)) {
+      this.instances.set(rootDir, new RepoManager(rootDir));
+    }
+    return this.instances.get(rootDir)!;
   }
   private get git(): SimpleGit {
     if (!this.isInit) {
