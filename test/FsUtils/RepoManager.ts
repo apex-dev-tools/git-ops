@@ -57,23 +57,21 @@ export class RepoManager {
     await this.initRemoteRepo();
     await this.cloneRepo();
     this.isInit = true;
-    await this.git
-      .raw(['checkout', '-b', 'main'])
-      .then(() => this.git.getRemotes())
-      .then(remotes => {
-        const [remote] = remotes;
-        if (!remote) return this.git.addRemote('origin', this.remoteRepoDir);
-      });
+    await this.git.raw(['checkout', '-b', 'main']);
   }
 
   async setHead() {
-    return await this.git.remote(['set-head', '--auto', 'origin']);
+    return await this.git
+      .remote(['set-head', '--auto', 'origin'])
+      .catch(err => console.log('set head failed ', err));
   }
 
   async push() {
     const debug = await this.git.getRemotes();
     console.log(debug);
-    return this.git.push('origin', 'main', ['-u']);
+    return await this.git
+      .push('origin', 'main', ['-u'])
+      .catch(err => console.log('push failed ', err));
   }
 
   async checkout(branchName: string, from: string) {
