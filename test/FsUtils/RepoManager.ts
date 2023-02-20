@@ -68,8 +68,6 @@ export class RepoManager {
   }
 
   async push() {
-    const debug = await this.git.getRemotes();
-    console.log(debug);
     return await this.git
       .push('origin', 'main', ['-u'])
       .catch(err => console.log('push failed ', err));
