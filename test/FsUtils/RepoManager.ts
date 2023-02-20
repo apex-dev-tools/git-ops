@@ -57,6 +57,7 @@ export class RepoManager {
     await this.initRemoteRepo();
     await this.cloneRepo();
     this.isInit = true;
+    await this.git.raw(['checkout', '-b', 'main']);
   }
 
   async setHead() {
