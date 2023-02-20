@@ -57,7 +57,13 @@ export class RepoManager {
     await this.initRemoteRepo();
     await this.cloneRepo();
     this.isInit = true;
-    await this.git.raw(['checkout', '-b', 'main']);
+    await this.git
+      .raw(['checkout', '-b', 'main'])
+      .then(() => this.git.getRemotes())
+      .then(remotes => {
+        const [remote] = remotes;
+        if (!remote) return this.git.addRemote('origin', this.remoteRepoDir);
+      });
   }
 
   async setHead() {
