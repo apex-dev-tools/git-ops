@@ -7,7 +7,6 @@ import {
   getDefaultBranchDiffByRef,
   getDefaultBranchDiff,
 } from '../../src/FilesChanged/BranchChanges';
-import { IGit } from '../../src/api/IGit';
 
 const mockGitImpl = {
   getDefaultBranchName: jest.fn(),
@@ -24,7 +23,7 @@ jest.mock('../../src/Git/Git', () => {
 const mockedGit = jest.mocked(Git, { shallow: true });
 
 describe('Branch changes', () => {
-  afterEach(async () => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

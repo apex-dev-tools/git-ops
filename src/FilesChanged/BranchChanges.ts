@@ -20,7 +20,9 @@ export async function getDefaultBranchDiffByRef(
       return await getChanges(git, branchName, ref);
     })
     .catch(er => {
-      throw Error(`Failed getting diff: ${er.message}`);
+      if (er instanceof Error)
+        throw Error(`Failed getting diff: ${er.message}`);
+      else throw Error('Failed getting diff');
     });
 }
 

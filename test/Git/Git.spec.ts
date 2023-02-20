@@ -18,19 +18,19 @@ describe('Git', () => {
   });
 
   describe('version check', () => {
-    it('does not fail when Git version is equal to 2.37.0', async () => {
+    it('does not fail when Git version is equal to 2.37.0', () => {
       //Given/When
-      const mock = {
+      const mock = ({
         version: jest.fn().mockReturnValue({ major: 2, minor: 37, patch: 0 }),
-      } as unknown as SimpleGit;
+      } as unknown) as SimpleGit;
 
-      await expect(Git.versionCheck(mock)).resolves;
+      expect(Git.versionCheck(mock)).resolves;
     });
     it('fails when Git major version is lower', async () => {
       //Given/When
-      const mock = {
+      const mock = ({
         version: jest.fn().mockReturnValue({ major: 1 }),
-      } as unknown as SimpleGit;
+      } as unknown) as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
@@ -40,22 +40,22 @@ describe('Git', () => {
 
     it('fails when Git minor version is lower', async () => {
       //Given/When
-      const mock = {
+      const mock = ({
         version: jest.fn().mockReturnValue({ major: 3, minor: 36 }),
-      } as unknown as SimpleGit;
+      } as unknown) as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
         Error('Unsupported version of git. Min version must be 2.37.0')
       );
     });
-    it('fails when Git patch version is more than 0', async () => {
+    it('fails when Git patch version is more than 0', () => {
       //Given/When
-      const mock = {
+      const mock = ({
         version: jest.fn().mockReturnValue({ major: 3, minor: 38, patch: 1 }),
-      } as unknown as SimpleGit;
+      } as unknown) as SimpleGit;
       //Then
-      await expect(Git.versionCheck(mock)).resolves;
+      expect(Git.versionCheck(mock)).resolves;
     });
   });
 
@@ -75,7 +75,7 @@ describe('Git', () => {
       //Given
       await repoManager
         .createOrUpdateFile('file.txt', 'Test Text')
-        .then(() => repoManager.stageAndCommitAll())
+        .then(() => repoManager.stageAndCommitAll(['file.txt']))
         .then(() => repoManager.push())
         .then(() => repoManager.setHead());
 
@@ -92,7 +92,7 @@ describe('Git', () => {
       //Given
       await repoManager
         .createOrUpdateFile('file.txt', 'Test Text')
-        .then(() => repoManager.stageAndCommitAll())
+        .then(() => repoManager.stageAndCommitAll(['file.txt']))
         .then(() => repoManager.push())
         .then(() => repoManager.setHead());
 
@@ -110,7 +110,7 @@ describe('Git', () => {
     beforeEach(async () => {
       await repoManager
         .createOrUpdateFile('file.txt', 'text')
-        .then(() => repoManager.stageAndCommitAll())
+        .then(() => repoManager.stageAndCommitAll(['file.txt']))
         .then(() => repoManager.push())
         .then(() => repoManager.setHead());
     });
@@ -140,7 +140,7 @@ describe('Git', () => {
 
       it('finds unstaged new files', async () => {
         //Given
-        repoManager.createOrUpdateFile('newFile.txt', 'content');
+        await repoManager.createOrUpdateFile('newFile.txt', 'content');
         //When
         const files = await new Git(
           repoManager.repoDir
@@ -161,10 +161,10 @@ describe('Git', () => {
       });
 
       it('finds staged renamed, modified and new files ', async () => {
-        //Setup
+        //Setup for renamed file
         await repoManager
           .createOrUpdateFile('second.txt', 'txt')
-          .then(() => repoManager.stageAndCommitAll());
+          .then(() => repoManager.stageAndCommitAll(['second.txt']));
 
         //Given
         await repoManager
@@ -190,13 +190,15 @@ describe('Git', () => {
         await repoManager
           .checkout('dev', 'main')
           .then(() => repoManager.createOrUpdateFile('newFile.txt', 'text'))
-          .then(() => repoManager.stageAndCommitAll());
+          .then(() => repoManager.stageAndCommitAll(['newFile.txt']));
       });
       it('finds diff against for default branch and HEAD', async () => {
         //Given
         await repoManager
           .createOrUpdateFile('anotherFileForCommit.txt', 'text')
-          .then(() => repoManager.stageAndCommitAll());
+          .then(() =>
+            repoManager.stageAndCommitAll(['anotherFileForCommit.txt'])
+          );
 
         //When
         const files = await new Git(repoManager.repoDir).diffRange(
@@ -216,7 +218,9 @@ describe('Git', () => {
 
         await repoManager
           .createOrUpdateFile('anotherFileForCommit.txt', 'text')
-          .then(() => repoManager.stageAndCommitAll());
+          .then(() =>
+            repoManager.stageAndCommitAll(['anotherFileForCommit.txt'])
+          );
 
         //When
         const files = await new Git(repoManager.repoDir).diffRange(

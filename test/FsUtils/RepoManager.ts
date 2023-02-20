@@ -29,12 +29,14 @@ export class RepoManager {
     if (!this.isInit) {
       throw new Error('Cannot perform git operation before calling init()');
     }
-    return simpleGit(this.testRepoDir);
+    // eslint-disable-next-line
+    return simpleGit(this.testRepoDir) as SimpleGit;
   }
 
   private async initRemoteRepo() {
     if (!fs.existsSync(this.remoteRepoDir)) {
       fs.mkdirSync(this.remoteRepoDir, { recursive: true });
+      // eslint-disable-next-line
       const git: SimpleGit = simpleGit(this.remoteRepoDir);
       await git.init(true);
     }
@@ -42,6 +44,7 @@ export class RepoManager {
 
   private async cloneRepo() {
     if (fs.existsSync(this.remoteRepoDir) && !fs.existsSync(this.testRepoDir)) {
+      // eslint-disable-next-line
       await simpleGit().clone(this.remoteRepoDir, this.testRepoDir);
     }
   }
@@ -61,6 +64,8 @@ export class RepoManager {
   }
 
   async push() {
+    const debug = await this.git.branchLocal();
+    console.log(debug);
     return this.git.push('origin', 'main', ['-u']);
   }
 
@@ -77,29 +82,21 @@ export class RepoManager {
     return log.all;
   }
 
-  async stageAndCommitAll() {
-    return this.stageAll().then(() => this.git.commit('commit message'));
+  async stageAndCommitAll(files?: string[]) {
+    return this.stageAll(files).then(() => this.git.commit('commit message'));
   }
 
   async tearDown() {
-    fs.rmSync(this.rootDir, { recursive: true, force: true });
+    await fs.promises.rm(this.rootDir, { recursive: true, force: true });
   }
 
   async createOrUpdateFile(fileName: string, content: string) {
     const fPath = path.join(this.testRepoDir, fileName);
     if (fs.existsSync(fPath)) {
-      fs.appendFileSync(fPath, content);
+      await fs.promises.appendFile(fPath, content);
     } else {
-      fs.writeFileSync(fPath, content);
+      await fs.promises.writeFile(fPath, content);
     }
-  }
-
-  async cleanRepo() {
-    fs.readdirSync(this.testRepoDir)
-      .filter(x => !x.startsWith('.')) //ignore Dot files and dirs
-      .forEach(file => {
-        this.rmFile(file);
-      });
   }
 
   rmFile(file: string) {

@@ -44,7 +44,8 @@ export class Git implements IGit {
 
   private get git(): Promise<SimpleGit> {
     if (Git.gitInstance) return Promise.resolve(Git.gitInstance);
-    const git = simpleGit(this.dir);
+    //eslint-disable-next-line
+    const git: SimpleGit = simpleGit(this.dir);
     return Git.versionCheck(git).then(() => {
       Git.gitInstance = git;
       return git;
@@ -57,9 +58,11 @@ export class Git implements IGit {
         git.raw(['symbolic-ref', 'refs/remotes/origin/HEAD', '--short'])
       )
       .catch(error => {
-        throw Error(
-          `Failed to find symbolic ref no remote HEAD with message: '${error.message.trim()}'`
-        );
+        if (error instanceof Error)
+          throw Error(
+            `Failed to find symbolic ref no remote HEAD with message: '${error.message.trim()}'`
+          );
+        else throw new Error('Failed to find symbolic ref no remote HEAD');
       })
       .then(branch => {
         if (branch.startsWith('origin/')) return branch.trim();
