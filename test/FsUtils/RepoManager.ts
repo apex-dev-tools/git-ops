@@ -63,7 +63,7 @@ export class RepoManager {
   async setHead() {
     return await this.git
       .raw(['symbolic-ref', 'HEAD', 'refs/heads/main'])
-      .then(() => this.git.remote(['set-head', '--auto', 'origin']))
+      .then(() => this.git.remote(['set-head', 'origin', 'main']))
       .catch(err => console.log('set head failed ', err));
   }
 
