@@ -65,7 +65,7 @@ export class RepoManager {
   }
 
   async push() {
-    const debug = await this.git.branchLocal();
+    const debug = await this.git.version();
     console.log(debug);
     return this.git.push('origin', 'main', ['-u']);
   }
