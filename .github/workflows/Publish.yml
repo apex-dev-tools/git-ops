@@ -7,6 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "<>"
 
       - name: Set up Node 14
         uses: actions/setup-node@v3
