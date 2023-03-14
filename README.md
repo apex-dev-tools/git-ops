@@ -21,9 +21,15 @@ pnpm test
 
 **Prerequisite**: The head mus tbe set on the repo otherwise any functions using default branch will fail
 
+### Installation
+
+```shell
+npm i @apexdevtools/git-ops
+```
+
 ### Finding changed files
 
-Getting changed files using the default branch in that repo given a ref. This find the default branch ion the repo using `git symbolic-ref 'refs/remotes/origin/HEAD'` so the `HEAD` must be set.
+Getting changed files using the default branch in that repo given a ref. This finds the default branch in the repo using `git symbolic-ref 'refs/remotes/origin/HEAD'` so the `HEAD` must be set.
 The output of the command is same as running `git diff branchName...ref` combined with `git status`.
 
 **Note:** files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set.
