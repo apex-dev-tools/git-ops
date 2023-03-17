@@ -2,12 +2,14 @@
  * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
  */
 
+import path from 'path';
 import { SimpleGit } from 'simple-git';
 import { Git } from '../../src/Git/Git';
 import { RepoManager } from '../FsUtils/RepoManager';
 
 describe('Git', () => {
-  const repoManager = RepoManager.getInstance('./test/repos');
+  const dir = './test/repos';
+  const repoManager = RepoManager.getInstance(dir);
 
   beforeEach(async () => {
     await repoManager.init();
@@ -56,6 +58,14 @@ describe('Git', () => {
       } as unknown) as SimpleGit;
       //Then
       expect(Git.versionCheck(mock)).resolves;
+    });
+  });
+
+  describe('rev parse', () => {
+    it('get git root', async () => {
+      const repoDirPath = path.resolve(repoManager.repoDir);
+      const revParse = await new Git(repoManager.repoDir).gitRoot();
+      expect(revParse).toBe(repoDirPath);
     });
   });
 

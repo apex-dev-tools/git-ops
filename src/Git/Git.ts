@@ -52,6 +52,10 @@ export class Git implements IGit {
     });
   }
 
+  public async gitRoot(): Promise<string> {
+    return (await this.git).revparse('--show-toplevel');
+  }
+
   public async getDefaultBranchName(): Promise<string> {
     return this.git
       .then(git =>

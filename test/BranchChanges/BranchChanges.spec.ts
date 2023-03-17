@@ -8,10 +8,14 @@ import {
   getDefaultBranchDiff,
 } from '../../src/FilesChanged/BranchChanges';
 
+import path from 'path';
+jest.mock('path');
+
 const mockGitImpl = {
   getDefaultBranchName: jest.fn(),
   getLocalChangedAndCreated: jest.fn(),
   diffRange: jest.fn(),
+  gitRoot: jest.fn(),
 };
 
 jest.mock('../../src/Git/Git', () => {
@@ -23,6 +27,16 @@ jest.mock('../../src/Git/Git', () => {
 const mockedGit = jest.mocked(Git, { shallow: true });
 
 describe('Branch changes', () => {
+  const mockRootDir = 'user/fake/path';
+
+  beforeAll(() => {
+    mockGitImpl.gitRoot.mockResolvedValue('abs/path/to/repo');
+    jest
+      .spyOn(path, 'resolve')
+      .mockImplementation(dir => `${mockRootDir}/${dir}`);
+    jest.spyOn(path, 'join').mockImplementation((a, b) => `${a}/${b}`);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -53,7 +67,11 @@ describe('Branch changes', () => {
         'abc12fcd'
       );
       expect(res).toEqual(
-        new Set(['File.txt', 'AnotherClass.txt', 'SomeFile.txt'])
+        new Set([
+          `${mockRootDir}/abs/path/to/repo/File.txt`,
+          `${mockRootDir}/abs/path/to/repo/AnotherClass.txt`,
+          `${mockRootDir}/abs/path/to/repo/SomeFile.txt`,
+        ])
       );
     });
 
@@ -109,7 +127,11 @@ describe('Branch changes', () => {
         'HEAD'
       );
       expect(res).toEqual(
-        new Set(['File.txt', 'AnotherClass.txt', 'SomeFile.txt'])
+        new Set([
+          `${mockRootDir}/abs/path/to/repo/File.txt`,
+          `${mockRootDir}/abs/path/to/repo/AnotherClass.txt`,
+          `${mockRootDir}/abs/path/to/repo/SomeFile.txt`,
+        ])
       );
     });
 
