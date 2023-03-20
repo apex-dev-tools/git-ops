@@ -1,4 +1,8 @@
-# test-runner - Changelog
+# git-ops - Changelog
+
+## 1.0.2 - 2023-03-20
+
+- downgrade min git version to 2.30.0
 
 ## 1.0.1 - 2023-03-14
 
