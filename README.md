@@ -2,6 +2,10 @@
 
 Library to do git operations to find changed files in a given git repository.
 
+## Prerequisite
+
+Minimum `git` version of `2.30.0` must already be installed on the host machine.
+
 ## Getting Started
 
 To build run
