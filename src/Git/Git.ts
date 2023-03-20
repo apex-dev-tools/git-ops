@@ -20,7 +20,7 @@ export enum FileStatus {
 
 export class Git implements IGit {
   private static MIN_GIT_VERSION_MAJOR = 2;
-  private static MIN_GIT_VERSION_MINOR = 37;
+  private static MIN_GIT_VERSION_MINOR = 30;
   private static MIN_GIT_VERSION_PATCH = 0;
   private static gitInstance: undefined | SimpleGit = undefined;
 

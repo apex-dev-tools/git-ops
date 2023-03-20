@@ -20,10 +20,10 @@ describe('Git', () => {
   });
 
   describe('version check', () => {
-    it('does not fail when Git version is equal to 2.37.0', () => {
+    it('does not fail when Git version is equal to 2.30.0', () => {
       //Given/When
       const mock = ({
-        version: jest.fn().mockReturnValue({ major: 2, minor: 37, patch: 0 }),
+        version: jest.fn().mockReturnValue({ major: 2, minor: 30, patch: 0 }),
       } as unknown) as SimpleGit;
 
       expect(Git.versionCheck(mock)).resolves;
@@ -36,7 +36,7 @@ describe('Git', () => {
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
-        Error('Unsupported version of git. Min version must be 2.37.0')
+        Error('Unsupported version of git. Min version must be 2.30.0')
       );
     });
 
@@ -48,7 +48,7 @@ describe('Git', () => {
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
-        Error('Unsupported version of git. Min version must be 2.37.0')
+        Error('Unsupported version of git. Min version must be 2.30.0')
       );
     });
     it('fails when Git patch version is more than 0', () => {
