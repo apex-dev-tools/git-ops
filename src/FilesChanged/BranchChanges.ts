@@ -38,7 +38,7 @@ export async function getDefaultBranchDiffByRef(
     });
 }
 /**
- * Works out the diff between a given range
+ * Works out the diff between a given range. Equivalent to `git diff ref1...ref2`
  * @param dir string of the directory thr operation should be performed on
  * @param fromRef string git ref. i.e HEAD, or commit hash
  * @param toRef string git ref. i.e HEAD, or commit hash
@@ -58,11 +58,12 @@ export async function getDiffRange(
     });
 }
 /**
- * get the local changes that not have been committed
+ * Get the local changes that not have been committed. Equivalent to `git status`
+ * Files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set.
  * @param dir tring of the directory thr operation should be performed on
- * @returns et of absolute paths of un committed files
+ * @returns set of absolute paths of un committed files
  */
-export async function getLocalChanges(dir: string) {
+export async function getLocalChanges(dir: string): Promise<Set<string>> {
   const git: IGit = new Git(dir);
   const root = await git.gitRoot();
   return git
