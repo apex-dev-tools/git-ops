@@ -22,7 +22,7 @@ export class Git implements IGit {
   private static MIN_GIT_VERSION_MAJOR = 2;
   private static MIN_GIT_VERSION_MINOR = 30;
   private static MIN_GIT_VERSION_PATCH = 0;
-  private static gitInstance: undefined | SimpleGit = undefined;
+  private gitInstance: undefined | SimpleGit = undefined;
 
   private dir: string;
 
@@ -43,11 +43,11 @@ export class Git implements IGit {
   }
 
   private get git(): Promise<SimpleGit> {
-    if (Git.gitInstance) return Promise.resolve(Git.gitInstance);
+    if (this.gitInstance) return Promise.resolve(this.gitInstance);
     //eslint-disable-next-line
     const git: SimpleGit = simpleGit(this.dir);
     return Git.versionCheck(git).then(() => {
-      Git.gitInstance = git;
+      this.gitInstance = git;
       return git;
     });
   }

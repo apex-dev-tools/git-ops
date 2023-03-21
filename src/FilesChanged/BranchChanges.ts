@@ -22,41 +22,101 @@ export async function getDefaultBranchDiff(dir: string): Promise<Set<string>> {
  * combined with `git status`.
  * Files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set.
  * @param dir: string of the directory thr operation should be performed on
- * @param red: string git ref. i.e HEAD, or commit hash
+ * @param refTo: string git ref. i.e HEAD, or commit hash
  * @returns set of absolute paths of changed files
  */
 export async function getDefaultBranchDiffByRef(
   dir: string,
-  ref: string
+  refTo: string
+): Promise<Set<string>> {
+  const git: IGit = new Git(dir);
+  return git
+    .getDefaultBranchName()
+    .then(branch => getDiffRange(dir, branch, refTo))
+    .catch(er => {
+      throw new NoLocalBranchException(er);
+    });
+}
+/**
+ * Works out the diff between a given range. Equivalent to `git diff ref1...ref2`
+ * @param dir string of the directory thr operation should be performed on
+ * @param fromRef string git ref. i.e HEAD, or commit hash
+ * @param toRef string git ref. i.e HEAD, or commit hash
+ * @returns set of absolute paths of changed files
+ */
+export async function getDiffRange(
+  dir: string,
+  fromRef: string,
+  toRef: string
 ): Promise<Set<string>> {
   const git: IGit = new Git(dir);
   const root = await git.gitRoot();
-  return git
-    .getDefaultBranchName()
-    .then(async branchName => {
-      return await getChanges(git, branchName, ref);
-    })
-    .then(changes => {
-      const fullPaths = [...changes].map(p => path.resolve(path.join(root, p)));
-      return new Set(fullPaths);
-    })
+  return getDiffChanges(git, fromRef, toRef)
+    .then(changes => resolvePaths(changes, root))
     .catch(er => {
-      if (er instanceof Error)
-        throw Error(`Failed getting diff: ${er.message}`);
-      else throw Error('Failed getting diff');
+      throw new DiffFailedException(er);
+    });
+}
+/**
+ * Get the local changes that not have been committed. Equivalent to `git status`
+ * Files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set.
+ * @param dir tring of the directory thr operation should be performed on
+ * @returns set of absolute paths of un committed files
+ */
+export async function getLocalChanges(dir: string): Promise<Set<string>> {
+  const git: IGit = new Git(dir);
+  const root = await git.gitRoot();
+  return git
+    .getLocalChangedAndCreated()
+    .then(changes => resolvePaths(changes, root))
+    .catch(er => {
+      throw new LocalChangeException(er);
     });
 }
 
-async function getChanges(
+function resolvePaths(paths: Set<string>, root: string) {
+  const fullPaths = [...paths].map(p => path.resolve(path.join(root, p)));
+  return new Set(fullPaths);
+}
+
+async function getDiffChanges(
   git: IGit,
-  branchName: string,
-  ref: string
+  ref1: string,
+  ref2: string
 ): Promise<Set<string>> {
   const changes = await Promise.all([
-    git.diffRange(branchName, ref),
+    git.diffRange(ref1, ref2),
     git.getLocalChangedAndCreated(),
   ]);
   const allChanges = new Set<string>();
   changes.forEach(set => set.forEach(file => allChanges.add(file)));
   return allChanges;
+}
+
+class GitException extends Error {
+  constructor(msg: string, err: any) {
+    if (err instanceof Error) {
+      super(`${msg}. Cause: '${err.message}'`);
+    } else {
+      super(msg);
+    }
+  }
+}
+
+class NoLocalBranchException extends GitException {
+  constructor(err: any) {
+    super('Local branch operation failed', err);
+  }
+}
+
+class LocalChangeException extends GitException {
+  constructor(err: any) {
+    super('Getting local changes operation failed', err);
+  }
+}
+
+class DiffFailedException extends GitException {
+  constructor(err: any) {
+    super('Getting diff operation failed', err);
+  }
 }

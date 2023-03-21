@@ -38,14 +38,40 @@ The output of the command is same as running `git diff branchName...ref` combine
 
 **Note:** files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set.
 
+### `getDefaultBranchDiffByRef`
+
+Works out changed files using the default branch in that repo given a ref.
+This find the default branch in the repo using `git symbolic-ref 'refs/remotes/origin/HEAD'`
+so the `HEAD` must be set. The output of the command is same as running `git diff branchName...ref` combined with `git status`.
+
+Files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set.
+
 ```TypeScript
-getDefaultBranchDiffByRef(repoRootDir: string, ref: string): Promise<Set<string>>
+getDefaultBranchDiffByRef(repoDir: string, ref: string): Promise<Set<string>>
 ```
 
-Getting changed files using the default branch in that repo.
+### `getDefaultBranchDiff`
 
 This command is same as calling `getDefaultBranchDiffByRef(repoRootDir, 'HEAD')`.
 
 ```TypeScript
-getDefaultBranchDiff(repoRootDir: string): Promise<Set<string>>
+getDefaultBranchDiff(repoDir: string): Promise<Set<string>>
+```
+
+### `getDiffRange`
+
+Works out the diff between a given range. Equivalent to `git diff ref1...ref2`
+
+```Typescript
+getDiffRange(dir: string, fromRef: string, toRef: string): Promise<Set<string>>
+```
+
+### `getLocalChanges`
+
+Get the local changes that not have been committed. Equivalent to `git status`
+
+Files with the status of deleted (`D`) and ignored (`!`) will not be included in the change set
+
+```TypeScript
+getLocalChanges(dir: string): Promise<Set<string>>
 ```
