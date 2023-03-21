@@ -5,6 +5,8 @@
 export {
   getDefaultBranchDiff,
   getDefaultBranchDiffByRef,
+  getDiffRange,
+  getLocalChanges,
 } from './FilesChanged/BranchChanges';
 
 export { IGit } from './api/IGit';
