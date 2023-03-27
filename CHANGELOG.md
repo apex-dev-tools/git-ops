@@ -1,5 +1,9 @@
 # git-ops - Changelog
 
+## 1.1.1 - 2023-03-27
+
+- Update minimum version to 2.20.0
+
 ## 1.1.0 - 2023-03-21
 
 - add new method `getDiffRange`

@@ -20,7 +20,7 @@ export enum FileStatus {
 
 export class Git implements IGit {
   private static MIN_GIT_VERSION_MAJOR = 2;
-  private static MIN_GIT_VERSION_MINOR = 30;
+  private static MIN_GIT_VERSION_MINOR = 20;
   private static MIN_GIT_VERSION_PATCH = 0;
   private gitInstance: undefined | SimpleGit = undefined;
 
@@ -36,6 +36,9 @@ export class Git implements IGit {
       version.major >= this.MIN_GIT_VERSION_MAJOR &&
       version.minor >= this.MIN_GIT_VERSION_MINOR &&
       version.patch >= this.MIN_GIT_VERSION_PATCH;
+    if (!version.installed) {
+      throw new Error('"git" is not installed or available on the PATH');
+    }
     if (!isSupported)
       throw new Error(
         `Unsupported version of git. Min version must be ${this.MIN_GIT_VERSION_MAJOR}.${this.MIN_GIT_VERSION_MINOR}.${this.MIN_GIT_VERSION_PATCH}`

@@ -20,44 +20,75 @@ describe('Git', () => {
   });
 
   describe('version check', () => {
-    it('does not fail when Git version is equal to 2.30.0', () => {
+    it('does not fail when Git version is equal to 2.20.0', () => {
       //Given/When
       const mock = ({
-        version: jest.fn().mockReturnValue({ major: 2, minor: 30, patch: 0 }),
+        version: jest.fn().mockReturnValue({
+          installed: true,
+          major: 2,
+          minor: 20,
+          patch: 0,
+        }),
       } as unknown) as SimpleGit;
 
       expect(Git.versionCheck(mock)).resolves;
     });
-    it('fails when Git major version is lower', async () => {
+
+    it('does not fail when Git version is higher', () => {
       //Given/When
       const mock = ({
-        version: jest.fn().mockReturnValue({ major: 1 }),
+        version: jest.fn().mockReturnValue({
+          installed: true,
+          major: 2,
+          minor: 30,
+          patch: 2,
+        }),
+      } as unknown) as SimpleGit;
+      //Then
+      expect(Git.versionCheck(mock)).resolves;
+    });
+
+    it('fails when Git is not installed', async () => {
+      //Given/When
+      const mock = ({
+        version: jest.fn().mockReturnValue({ installed: false }),
       } as unknown) as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
-        Error('Unsupported version of git. Min version must be 2.30.0')
+        Error('"git" is not installed or available on the PATH')
+      );
+    });
+
+    it('fails when Git major version is lower', async () => {
+      //Given/When
+      const mock = ({
+        version: jest.fn().mockReturnValue({
+          installed: true,
+          major: 1,
+        }),
+      } as unknown) as SimpleGit;
+
+      //Then
+      await expect(Git.versionCheck(mock)).rejects.toThrow(
+        Error('Unsupported version of git. Min version must be 2.20.0')
       );
     });
 
     it('fails when Git minor version is lower', async () => {
       //Given/When
       const mock = ({
-        version: jest.fn().mockReturnValue({ major: 3, minor: 36 }),
+        version: jest.fn().mockReturnValue({
+          installed: true,
+          major: 2,
+          minor: 19,
+        }),
       } as unknown) as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
-        Error('Unsupported version of git. Min version must be 2.30.0')
+        Error('Unsupported version of git. Min version must be 2.20.0')
       );
-    });
-    it('fails when Git patch version is more than 0', () => {
-      //Given/When
-      const mock = ({
-        version: jest.fn().mockReturnValue({ major: 3, minor: 38, patch: 1 }),
-      } as unknown) as SimpleGit;
-      //Then
-      expect(Git.versionCheck(mock)).resolves;
     });
   });
 
