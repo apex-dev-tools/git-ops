@@ -2,7 +2,12 @@
  * Copyright (c) 2022, FinancialForce.com, inc. All rights reserved.
  */
 
-import { SimpleGit, simpleGit } from 'simple-git';
+import {
+  SimpleGit,
+  simpleGit,
+  SimpleGitOptions,
+  StatusResult,
+} from 'simple-git';
 import { IGit } from '../api/IGit';
 
 export enum FileStatus {
@@ -35,7 +40,8 @@ export class Git implements IGit {
     const isSupported =
       version.major >= this.MIN_GIT_VERSION_MAJOR &&
       version.minor >= this.MIN_GIT_VERSION_MINOR &&
-      version.patch >= this.MIN_GIT_VERSION_PATCH;
+      !isNaN(Number(version.patch)) &&
+      Number(version.patch) >= this.MIN_GIT_VERSION_PATCH;
     if (!version.installed) {
       throw new Error('"git" is not installed or available on the PATH');
     }
