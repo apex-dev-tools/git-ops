@@ -47,6 +47,7 @@ export class OrgTracking {
           org,
           project,
         });
+        await tracking.ensureRemoteTracking(true);
         const initValue: SyncStatus = { local: [], remote: [] };
         return (
           await tracking.getStatus({ local: getLocalStatus, remote: true })
