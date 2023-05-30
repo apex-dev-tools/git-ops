@@ -15,6 +15,8 @@ export interface SyncStatusRow {
   fullName: string;
   path?: string;
   state: FileState[];
+  type: string;
+  raw: object;
 }
 
 export interface SyncStatus {
@@ -73,6 +75,8 @@ export class OrgTracking {
       fullName: from.fullName,
       path: from.filePath,
       state: state,
+      type: from.type,
+      raw: from,
     };
   }
 
