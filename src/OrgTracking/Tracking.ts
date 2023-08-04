@@ -1,6 +1,6 @@
-import { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking';
-import { Org, SfProject, Connection } from '@salesforce/core';
+import { Org, Connection, SfProject } from '@salesforce/core';
 import { cwd, chdir } from 'process';
+import { StatusOutputRow, SourceTracking } from '@salesforce/source-tracking';
 
 export enum FileState {
   Added = 'add',
@@ -16,7 +16,7 @@ export interface SyncStatusRow {
   path?: string;
   state: FileState[];
   type: string;
-  raw: object;
+  origin: string;
 }
 
 export interface SyncStatus {
@@ -36,9 +36,7 @@ export class OrgTracking {
     this.options = options;
   }
 
-  public async getStatusFromSourceTracking(
-    getLocalStatus = true
-  ): Promise<SyncStatus> {
+  public async getLocalStatus(withConflicts = false): Promise<SyncStatus> {
     const project = SfProject.getInstance(this.options.projectDir);
     const org = await Org.create({ connection: this.options.connection });
 
@@ -48,12 +46,33 @@ export class OrgTracking {
         const tracking = await SourceTracking.create({
           org,
           project,
+          ignoreLocalCache: true,
         });
+
         await tracking.ensureRemoteTracking(true);
         const initValue: SyncStatus = { local: [], remote: [] };
-        return (
-          await tracking.getStatus({ local: getLocalStatus, remote: true })
-        ).reduce((acc, row) => {
+        const status: StatusOutputRow[] = await tracking
+          .getStatus({ local: true, remote: false })
+          .then(async res => {
+            if (withConflicts) {
+              //Taken from sourceTracking.ts from the @salesforce/source-tracking lib
+              const conflictFiles = (await tracking.getConflicts())
+                .flatMap(conflict => conflict.filenames)
+                .filter((value: any) => typeof value === 'string');
+              res = res.map(row => ({
+                ...row,
+                conflict:
+                  !!row.filePath && conflictFiles.includes(row.filePath),
+              }));
+            }
+            return res;
+          })
+          .catch(err => {
+            //TODO: log error
+            return [] as StatusOutputRow[];
+          });
+
+        return status.reduce((acc, row) => {
           acc[row.origin].push(this.toSyncStatusRow(row));
           return acc;
         }, initValue);
@@ -76,7 +95,7 @@ export class OrgTracking {
       path: from.filePath,
       state: state,
       type: from.type,
-      raw: from,
+      origin: from.origin,
     };
   }
 
