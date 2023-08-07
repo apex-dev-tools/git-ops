@@ -1,4 +1,3 @@
-import { expect, jest } from '@jest/globals';
 import { OrgTracking } from '../../src';
 import { Org, SfProject } from '@salesforce/core';
 
