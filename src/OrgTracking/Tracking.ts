@@ -67,7 +67,7 @@ export class OrgTracking {
             }
             return res;
           })
-          .catch(err => {
+          .catch(() => {
             //TODO: log error
             return [] as StatusOutputRow[];
           });
