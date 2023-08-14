@@ -38,9 +38,11 @@ export interface OrgTrackingOptions {
 
 export class OrgTracking {
   private options: OrgTrackingOptions;
+  private logger: Logger;
 
   constructor(options: OrgTrackingOptions) {
     this.options = options;
+    this.logger = options.logger;
   }
 
   public async getLocalStatus(withConflicts = false): Promise<SyncStatus> {
@@ -75,7 +77,7 @@ export class OrgTracking {
             return res;
           })
           .catch(e => {
-            this.options.logger.error(e);
+            this.logger.logError(e);
             return [] as StatusOutputRow[];
           });
 
@@ -95,7 +97,7 @@ export class OrgTracking {
       async () => {
         return this.deploy(paths)
           .then(res => this.updateSourceTracking(res))
-          .catch(e => this.options.logger.error(e));
+          .catch(e => this.logger.logError(e));
       }
     );
   }
@@ -106,7 +108,7 @@ export class OrgTracking {
     const deploy = await set.deploy({
       usernameOrConnection: this.options.connection,
     });
-    this.options.logger.deployProgress('Starting deploy');
+    this.logger.logDeployProgress('Starting deploy');
     deploy.onUpdate(response => {
       const {
         status,
@@ -115,9 +117,12 @@ export class OrgTracking {
       } = response;
       const progress = `${numberComponentsDeployed}/${numberComponentsTotal}`;
       const message = `Status: ${status} Progress: ${progress}`;
-      this.options.logger.deployProgress(message);
+      this.logger.logDeployProgress(message);
     });
-    return await deploy.pollStatus();
+    return await deploy.pollStatus().then(res => {
+      this.logger.logMessage('Finished deploy');
+      return res;
+    });
   }
 
   private async updateSourceTracking(result: DeployResult) {

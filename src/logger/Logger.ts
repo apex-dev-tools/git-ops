@@ -3,6 +3,10 @@
  */
 
 export interface Logger {
-  deployProgress(status: string): void;
-  error(error: any): void;
+  //General
+  logError(error: any): void;
+  logMessage(message: any): void;
+
+  //Deploy specific
+  logDeployProgress(status: string): void;
 }

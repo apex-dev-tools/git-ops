@@ -144,8 +144,9 @@ describe('OrgTracking', () => {
   });
 
   const mockLogger: Logger = {
-    deployProgress: jest.fn(),
-    error: jest.fn(),
+    logDeployProgress: jest.fn(),
+    logError: jest.fn(),
+    logMessage: jest.fn(),
   };
 
   describe('getLocalStatus', () => {
@@ -326,7 +327,7 @@ describe('OrgTracking', () => {
         mockDeployResult
       );
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockLogger.deployProgress).toBeCalledWith('Starting deploy');
+      expect(mockLogger.logDeployProgress).toBeCalledWith('Starting deploy');
     });
   });
 });
