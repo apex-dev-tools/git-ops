@@ -1,5 +1,12 @@
 # git-ops - Changelog
 
+## 1.2.0 - unreleased
+
+- Add `OrgTracking` class
+  - adds the ability to get local status against the default org
+  - adds the ability to deploy and update source tracking given file paths
+- remove patch version checking in Git version
+
 ## 1.1.1 - 2023-03-27
 
 - Update minimum version to 2.20.0
