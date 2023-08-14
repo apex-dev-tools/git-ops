@@ -106,7 +106,7 @@ export class OrgTracking {
     const deploy = await set.deploy({
       usernameOrConnection: this.options.connection,
     });
-    this.options.logger.deployProgress('Starting deploy ');
+    this.options.logger.deployProgress('Starting deploy');
     deploy.onUpdate(response => {
       const {
         status,
