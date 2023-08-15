@@ -1,6 +1,6 @@
 # git-ops - Changelog
 
-## 1.2.0 - unreleased
+## 1.2.0 - 2023-09-15
 
 - Add `OrgTracking` class
   - adds the ability to get local status against the default org
