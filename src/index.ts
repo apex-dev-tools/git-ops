@@ -9,5 +9,13 @@ export {
   getLocalChanges,
 } from './FilesChanged/BranchChanges';
 
+export {
+  OrgTracking,
+  OrgTrackingOptions,
+  FileState,
+  SyncStatusRow,
+  SyncStatus,
+} from './OrgTracking/Tracking';
+
 export { IGit } from './api/IGit';
 export { Git } from './Git/Git';
