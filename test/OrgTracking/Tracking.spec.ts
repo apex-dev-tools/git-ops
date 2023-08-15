@@ -1,5 +1,10 @@
+/*
+ * Copyright (c) 2023 Certinia Inc. All rights reserved.
+ */
+
 import { OrgTracking } from '../../src';
 import { Org, SfProject } from '@salesforce/core';
+import { Logger } from '../../src/';
 
 const mockGetStatusData = [
   {
@@ -76,6 +81,9 @@ const mockSourceTracking = {
   getConflicts: jest
     .fn()
     .mockImplementation(() => Promise.resolve(mockConflictsData)),
+  updateTrackingFromDeploy: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve()),
 };
 
 jest.mock('@salesforce/source-tracking', () => {
@@ -84,6 +92,30 @@ jest.mock('@salesforce/source-tracking', () => {
       create: jest
         .fn()
         .mockImplementation(() => Promise.resolve({ ...mockSourceTracking })),
+    },
+  };
+});
+
+const mockDeploy = {
+  onUpdate: jest.fn(),
+  pollStatus: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(mockDeployResult)),
+};
+
+const mockDeployResult = { done: true };
+const mockComponentSet = {
+  deploy: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve({ ...mockDeploy })),
+};
+
+jest.mock('@salesforce/source-deploy-retrieve', () => {
+  return {
+    ComponentSet: {
+      fromSource: jest.fn().mockImplementation(() => {
+        return { ...mockComponentSet };
+      }),
     },
   };
 });
@@ -111,11 +143,18 @@ describe('OrgTracking', () => {
     jest.clearAllMocks();
   });
 
+  const mockLogger: Logger = {
+    logDeployProgress: jest.fn(),
+    logError: jest.fn(),
+    logMessage: jest.fn(),
+  };
+
   describe('getLocalStatus', () => {
     it('returns the correct status', async () => {
       const tracking = new OrgTracking({
         connection: mockConnection,
         projectDir: PROJECT_DIR,
+        logger: mockLogger,
       });
 
       const res = await tracking.getLocalStatus();
@@ -185,6 +224,7 @@ describe('OrgTracking', () => {
       const tracking = new OrgTracking({
         connection: mockConnection,
         projectDir: PROJECT_DIR,
+        logger: mockLogger,
       });
 
       //When
@@ -249,6 +289,45 @@ describe('OrgTracking', () => {
         ],
         remote: [],
       });
+    });
+  });
+
+  describe('deployAndUpdateSourceTracking', () => {
+    it('deploys and update tracking given paths', async () => {
+      //Given
+      const paths = ['/path/to/component', '/path/to/component/1'];
+
+      const tracking = new OrgTracking({
+        connection: mockConnection,
+        projectDir: PROJECT_DIR,
+        logger: mockLogger,
+      });
+
+      //When
+      await tracking.deployAndUpdateSourceTracking(paths);
+
+      //Then
+      expect(cwdSpy).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      expect(chdirSpy.mock.calls).toEqual([
+        [PROJECT_DIR],
+        ['mocked/current/working/dir'],
+      ]);
+      expect(mockComponentSet.deploy).toHaveBeenCalledWith({
+        usernameOrConnection: mockConnection,
+      });
+      expect(mockDeploy.onUpdate).toHaveBeenCalled();
+      expect(mockDeploy.pollStatus).toHaveBeenCalled();
+
+      expect(sfCoreSpy.Org.create).toHaveBeenCalledWith({
+        connection: mockConnection,
+      });
+      expect(sfCoreSpy.SfProject.getInstance).toHaveBeenCalledWith(PROJECT_DIR);
+      expect(mockSourceTracking.updateTrackingFromDeploy).toHaveBeenCalledWith(
+        mockDeployResult
+      );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockLogger.logDeployProgress).toBeCalledWith('Starting deploy');
     });
   });
 });

@@ -71,7 +71,7 @@ describe('Git', () => {
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
-        Error('Unsupported version of git. Min version must be 2.20.0')
+        Error('Unsupported version of git. Min version must be 2.20')
       );
     });
 
@@ -87,7 +87,7 @@ describe('Git', () => {
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
-        Error('Unsupported version of git. Min version must be 2.20.0')
+        Error('Unsupported version of git. Min version must be 2.20')
       );
     });
   });

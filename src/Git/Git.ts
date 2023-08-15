@@ -2,12 +2,7 @@
  * Copyright (c) 2022, FinancialForce.com, inc. All rights reserved.
  */
 
-import {
-  SimpleGit,
-  simpleGit,
-  SimpleGitOptions,
-  StatusResult,
-} from 'simple-git';
+import { SimpleGit, simpleGit } from 'simple-git';
 import { IGit } from '../api/IGit';
 
 export enum FileStatus {
@@ -26,7 +21,6 @@ export enum FileStatus {
 export class Git implements IGit {
   private static MIN_GIT_VERSION_MAJOR = 2;
   private static MIN_GIT_VERSION_MINOR = 20;
-  private static MIN_GIT_VERSION_PATCH = 0;
   private gitInstance: undefined | SimpleGit = undefined;
 
   private dir: string;
@@ -39,15 +33,14 @@ export class Git implements IGit {
     const version = await git.version();
     const isSupported =
       version.major >= this.MIN_GIT_VERSION_MAJOR &&
-      version.minor >= this.MIN_GIT_VERSION_MINOR &&
-      !isNaN(Number(version.patch)) &&
-      Number(version.patch) >= this.MIN_GIT_VERSION_PATCH;
+      version.minor >= this.MIN_GIT_VERSION_MINOR;
+
     if (!version.installed) {
       throw new Error('"git" is not installed or available on the PATH');
     }
     if (!isSupported)
       throw new Error(
-        `Unsupported version of git. Min version must be ${this.MIN_GIT_VERSION_MAJOR}.${this.MIN_GIT_VERSION_MINOR}.${this.MIN_GIT_VERSION_PATCH}`
+        `Unsupported version of git. Min version must be ${this.MIN_GIT_VERSION_MAJOR}.${this.MIN_GIT_VERSION_MINOR}`
       );
   }
 

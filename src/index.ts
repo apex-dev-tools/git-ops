@@ -17,5 +17,7 @@ export {
   SyncStatus,
 } from './OrgTracking/Tracking';
 
+export { Logger } from './logger/Logger';
+
 export { IGit } from './api/IGit';
 export { Git } from './Git/Git';

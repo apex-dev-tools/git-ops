@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2023 Certinia Inc. All rights reserved.
+ */
+
 import { Org, Connection, SfProject } from '@salesforce/core';
 import { cwd, chdir } from 'process';
 import { StatusOutputRow, SourceTracking } from '@salesforce/source-tracking';
+import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import { Logger } from '../logger/Logger';
 
 export enum FileState {
   Added = 'add',
@@ -27,13 +33,16 @@ export interface SyncStatus {
 export interface OrgTrackingOptions {
   connection: Connection;
   projectDir: string;
+  logger: Logger;
 }
 
 export class OrgTracking {
   private options: OrgTrackingOptions;
+  private logger: Logger;
 
   constructor(options: OrgTrackingOptions) {
     this.options = options;
+    this.logger = options.logger;
   }
 
   public async getLocalStatus(withConflicts = false): Promise<SyncStatus> {
@@ -67,8 +76,8 @@ export class OrgTracking {
             }
             return res;
           })
-          .catch(() => {
-            //TODO: log error
+          .catch(e => {
+            this.logger.logError(e);
             return [] as StatusOutputRow[];
           });
 
@@ -78,6 +87,53 @@ export class OrgTracking {
         }, initValue);
       }
     );
+  }
+
+  public async deployAndUpdateSourceTracking(
+    paths: Array<string>
+  ): Promise<void> {
+    return await this.withWorkingDir<void>(
+      this.options.projectDir,
+      async () => {
+        return this.deploy(paths)
+          .then(res => this.updateSourceTracking(res))
+          .catch(e => this.logger.logError(e));
+      }
+    );
+  }
+
+  private async deploy(paths: Array<string>): Promise<DeployResult> {
+    const set = ComponentSet.fromSource(paths);
+
+    const deploy = await set.deploy({
+      usernameOrConnection: this.options.connection,
+    });
+    this.logger.logDeployProgress('Starting deploy');
+    deploy.onUpdate(response => {
+      const {
+        status,
+        numberComponentsDeployed,
+        numberComponentsTotal,
+      } = response;
+      const progress = `${numberComponentsDeployed}/${numberComponentsTotal}`;
+      const message = `Status: ${status} Progress: ${progress}`;
+      this.logger.logDeployProgress(message);
+    });
+    return await deploy.pollStatus().then(res => {
+      this.logger.logMessage('Finished deploy');
+      return res;
+    });
+  }
+
+  private async updateSourceTracking(result: DeployResult) {
+    const project = SfProject.getInstance(this.options.projectDir);
+    const org = await Org.create({ connection: this.options.connection });
+    const tracking = await SourceTracking.create({
+      org,
+      project,
+      ignoreLocalCache: true,
+    });
+    await tracking.updateTrackingFromDeploy(result);
   }
 
   private toSyncStatusRow(from: StatusOutputRow) {
