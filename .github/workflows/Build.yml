@@ -18,14 +18,13 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "<>"
 
-      - name: Set up Node 14
+      - name: Set up Node LTS
         uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 'lts/*'
 
-      - uses: pnpm/action-setup@v2.2.2
-        with:
-          version: 7.5.2
+      - name: Set up package manager
+        run: corepack enable pnpm
 
       - name: Build & Test
         run: |
