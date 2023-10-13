@@ -1,5 +1,9 @@
 # git-ops - Changelog
 
+## 1.3.0 - 2023-10-13
+
+- Upgrade SF Core dependencies
+
 ## 1.2.0 - 2023-09-15
 
 - Add `OrgTracking` class
