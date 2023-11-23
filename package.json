@@ -34,7 +34,7 @@
     "url": "https://github.com/apex-dev-tools/git-ops/issues"
   },
   "homepage": "https://github.com/apex-dev-tools/git-ops#readme",
-  "packageManager": "pnpm@8.2.0",
+  "packageManager": "pnpm@8.9.2",
   "dependencies": {
     "@salesforce/core": "^4.3.11",
     "@salesforce/source-deploy-retrieve": "^9.2.8",
