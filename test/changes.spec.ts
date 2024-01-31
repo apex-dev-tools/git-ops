@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
-import { Git } from '../../src/Git/Git';
 import {
+  Git,
   getDefaultBranchDiffByRef,
   getDefaultBranchDiff,
   getDiffRange,
   getLocalChanges,
-} from '../../src/FilesChanged/BranchChanges';
+} from '../src';
 
 import path from 'path';
 jest.mock('path');
