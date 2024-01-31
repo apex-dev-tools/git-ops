@@ -1,9 +1,13 @@
 /*
- * Copyright (c) 2022, FinancialForce.com, inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
-import { SimpleGit, simpleGit } from 'simple-git';
-import { IGit } from '../api/IGit';
+import {
+  FileStatusResult,
+  SimpleGit,
+  TaskOptions,
+  simpleGit,
+} from 'simple-git';
 
 export enum FileStatus {
   Unmodified = ' ',
@@ -18,7 +22,7 @@ export enum FileStatus {
   Ignore = '!',
 }
 
-export class Git implements IGit {
+export class Git {
   private static MIN_GIT_VERSION_MAJOR = 2;
   private static MIN_GIT_VERSION_MINOR = 20;
   private gitInstance: undefined | SimpleGit = undefined;
@@ -94,17 +98,21 @@ export class Git implements IGit {
   public async getLocalChangedAndCreated(): Promise<Set<string>> {
     const excludeStatus = [FileStatus.Deleted, FileStatus.Ignore];
 
+    return this.getFilteredStatus(
+      f =>
+        !excludeStatus.includes(f.index as FileStatus) &&
+        !excludeStatus.includes(f.working_dir as FileStatus)
+    );
+  }
+
+  public async getFilteredStatus(
+    filterFn: (result: FileStatusResult) => boolean,
+    options?: TaskOptions | undefined
+  ): Promise<Set<string>> {
     return this.git
-      .then(git => git.status())
+      .then(git => git.status(options))
       .then(status => {
-        const changedFiles = status.files
-          .filter(
-            f =>
-              !excludeStatus.includes(f.index as FileStatus) &&
-              !excludeStatus.includes(f.working_dir as FileStatus)
-          )
-          .map(f => f.path);
-        return new Set(...[changedFiles]);
+        return new Set(...[status.files.filter(filterFn).map(f => f.path)]);
       });
   }
 }

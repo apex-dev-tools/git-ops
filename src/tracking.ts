@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2023 Certinia Inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
 import { Org, Connection, SfProject } from '@salesforce/core';
 import { cwd, chdir } from 'process';
 import { StatusOutputRow, SourceTracking } from '@salesforce/source-tracking';
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
-import { Logger } from '../logger/Logger';
 
 export enum FileState {
   Added = 'add',
@@ -33,12 +32,21 @@ export interface SyncStatus {
 export interface OrgTrackingOptions {
   connection: Connection;
   projectDir: string;
-  logger: Logger;
+  logger: OrgTrackingLogger;
+}
+
+export interface OrgTrackingLogger {
+  //General
+  logError(error: any): void;
+  logMessage(message: any): void;
+
+  //Deploy specific
+  logDeployProgress(status: string): void;
 }
 
 export class OrgTracking {
   private options: OrgTrackingOptions;
-  private logger: Logger;
+  private logger: OrgTrackingLogger;
 
   constructor(options: OrgTrackingOptions) {
     this.options = options;
@@ -110,11 +118,8 @@ export class OrgTracking {
     });
     this.logger.logDeployProgress('Starting deploy');
     deploy.onUpdate(response => {
-      const {
-        status,
-        numberComponentsDeployed,
-        numberComponentsTotal,
-      } = response;
+      const { status, numberComponentsDeployed, numberComponentsTotal } =
+        response;
       const progress = `${numberComponentsDeployed}/${numberComponentsTotal}`;
       const message = `Status: ${status} Progress: ${progress}`;
       this.logger.logDeployProgress(message);

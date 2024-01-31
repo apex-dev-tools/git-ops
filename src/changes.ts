@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
 import path from 'path';
-import { IGit } from '../api/IGit';
-import { Git } from '../Git/Git';
+import { Git } from './git';
 
 /**
  * Works out a set of changed files by performing getDefaultBranchDiffByRef(repoRootDir, 'HEAD')
@@ -29,7 +28,7 @@ export async function getDefaultBranchDiffByRef(
   dir: string,
   refTo: string
 ): Promise<Set<string>> {
-  const git: IGit = new Git(dir);
+  const git: Git = new Git(dir);
   return git
     .getDefaultBranchName()
     .then(branch => getDiffRange(dir, branch, refTo))
@@ -49,7 +48,7 @@ export async function getDiffRange(
   fromRef: string,
   toRef: string
 ): Promise<Set<string>> {
-  const git: IGit = new Git(dir);
+  const git: Git = new Git(dir);
   const root = await git.gitRoot();
   return getDiffChanges(git, fromRef, toRef)
     .then(changes => resolvePaths(changes, root))
@@ -64,11 +63,34 @@ export async function getDiffRange(
  * @returns set of absolute paths of un committed files
  */
 export async function getLocalChanges(dir: string): Promise<Set<string>> {
-  const git: IGit = new Git(dir);
+  const git: Git = new Git(dir);
   const root = await git.gitRoot();
   return git
     .getLocalChangedAndCreated()
     .then(changes => resolvePaths(changes, root))
+    .catch(er => {
+      throw new LocalChangeException(er);
+    });
+}
+
+/**
+ * Get the locally changed class files, based on source tracking repo.
+ * @param projectDir SF project dir path
+ * @param orgId SF org ID, used to select tracking repo
+ * @returns
+ */
+export async function getDeployableClasses(
+  projectDir: string,
+  orgId: string
+): Promise<Set<string>> {
+  const git: Git = new Git(projectDir);
+  const trackingDir = getTrackingGitDir(projectDir, orgId);
+
+  return git
+    .getFilteredStatus(
+      f => f.path.endsWith('.cls'),
+      [`--git-dir=${trackingDir}`]
+    )
     .catch(er => {
       throw new LocalChangeException(er);
     });
@@ -80,7 +102,7 @@ function resolvePaths(paths: Set<string>, root: string) {
 }
 
 async function getDiffChanges(
-  git: IGit,
+  git: Git,
   ref1: string,
   ref2: string
 ): Promise<Set<string>> {
@@ -91,6 +113,10 @@ async function getDiffChanges(
   const allChanges = new Set<string>();
   changes.forEach(set => set.forEach(file => allChanges.add(file)));
   return allChanges;
+}
+
+function getTrackingGitDir(projectDir: string, orgId: string): string {
+  return path.join(projectDir, '.sf', 'orgs', orgId, 'localSourceTracking');
 }
 
 class GitException extends Error {

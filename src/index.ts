@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
 export {
@@ -7,17 +7,15 @@ export {
   getDefaultBranchDiffByRef,
   getDiffRange,
   getLocalChanges,
-} from './FilesChanged/BranchChanges';
+} from './changes';
 
 export {
   OrgTracking,
   OrgTrackingOptions,
+  OrgTrackingLogger,
   FileState,
   SyncStatusRow,
   SyncStatus,
-} from './OrgTracking/Tracking';
+} from './tracking';
 
-export { Logger } from './logger/Logger';
-
-export { IGit } from './api/IGit';
-export { Git } from './Git/Git';
+export { Git } from './git';
