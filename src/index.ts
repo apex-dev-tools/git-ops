@@ -7,6 +7,7 @@ export {
   getDefaultBranchDiffByRef,
   getDiffRange,
   getLocalChanges,
+  getDeployableClasses,
 } from './changes';
 
 export {

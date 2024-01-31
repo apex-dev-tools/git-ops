@@ -3,7 +3,7 @@
  */
 
 import path from 'path';
-import { Git } from './git';
+import { FileStatus, Git } from './git';
 
 /**
  * Works out a set of changed files by performing getDefaultBranchDiffByRef(repoRootDir, 'HEAD')
@@ -74,10 +74,12 @@ export async function getLocalChanges(dir: string): Promise<Set<string>> {
 }
 
 /**
- * Get the locally changed class files, based on source tracking repo.
+ * Get the locally changed class files, based on source tracking repo. Note that it does
+ * not respect the `.forceignore` yet.
+ *
  * @param projectDir SF project dir path
  * @param orgId SF org ID, used to select tracking repo
- * @returns
+ * @returns paths of class files that may need deploying
  */
 export async function getDeployableClasses(
   projectDir: string,
@@ -85,10 +87,16 @@ export async function getDeployableClasses(
 ): Promise<Set<string>> {
   const git: Git = new Git(projectDir);
   const trackingDir = getTrackingGitDir(projectDir, orgId);
+  const stats: string[] = [
+    FileStatus.Modified,
+    FileStatus.Added,
+    FileStatus.Renamed,
+    FileStatus.Copied,
+  ];
 
   return git
     .getFilteredStatus(
-      f => f.path.endsWith('.cls'),
+      f => f.path.endsWith('.cls') && stats.includes(f.working_dir),
       [`--git-dir=${trackingDir}`]
     )
     .catch(er => {
