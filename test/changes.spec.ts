@@ -3,44 +3,43 @@
  */
 
 import {
-  Git,
   getDefaultBranchDiffByRef,
   getDefaultBranchDiff,
   getDiffRange,
   getLocalChanges,
+  getDeployableClasses,
 } from '../src';
-
-import path from 'path';
-jest.mock('path');
 
 const mockGitImpl = {
   getDefaultBranchName: jest.fn(),
   getLocalChangedAndCreated: jest.fn(),
   diffRange: jest.fn(),
   gitRoot: jest.fn(),
+  getFilteredStatus: jest.fn(),
 };
 
-jest.mock('../../src/Git/Git', () => {
+jest.mock('../src/git', () => {
+  const { FileStatus } = jest.requireActual('../src/git');
   return {
     Git: jest.fn().mockImplementation(() => mockGitImpl),
+    FileStatus,
   };
 });
 
-const mockedGit = jest.mocked(Git, { shallow: true });
-
 describe('Branch changes', () => {
-  const mockRootDir = 'user/fake/path';
+  const mockRootDir = '/reporoot';
 
-  beforeAll(() => {
-    mockGitImpl.gitRoot.mockResolvedValue('abs/path/to/repo');
-    jest
-      .spyOn(path, 'resolve')
-      .mockImplementation(dir => `${mockRootDir}/${dir}`);
-    jest.spyOn(path, 'join').mockImplementation((a, b) => `${a}/${b}`);
+  beforeEach(() => {
+    mockGitImpl.gitRoot.mockResolvedValue(mockRootDir);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
+    mockGitImpl.getDefaultBranchName.mockReset();
+    mockGitImpl.getLocalChangedAndCreated.mockReset();
+    mockGitImpl.diffRange.mockReset();
+    mockGitImpl.gitRoot.mockReset();
+    mockGitImpl.getFilteredStatus.mockReset();
   });
 
   describe('getDefaultBranchDiffByRef', () => {
@@ -61,7 +60,6 @@ describe('Branch changes', () => {
       );
 
       //Then
-      expect(mockedGit).toHaveBeenCalledWith('./some/path/to/dir');
       expect(mockGitImpl.getDefaultBranchName).toBeCalledTimes(1);
       expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
       expect(mockGitImpl.diffRange).toHaveBeenCalledWith(
@@ -70,9 +68,9 @@ describe('Branch changes', () => {
       );
       expect(res).toEqual(
         new Set([
-          `${mockRootDir}/abs/path/to/repo/File.txt`,
-          `${mockRootDir}/abs/path/to/repo/AnotherClass.txt`,
-          `${mockRootDir}/abs/path/to/repo/SomeFile.txt`,
+          `${mockRootDir}/File.txt`,
+          `${mockRootDir}/AnotherClass.txt`,
+          `${mockRootDir}/SomeFile.txt`,
         ])
       );
     });
@@ -127,7 +125,6 @@ describe('Branch changes', () => {
       const res = await getDefaultBranchDiff('./some/path/to/dir');
 
       //Then
-      expect(mockedGit).toHaveBeenCalledWith('./some/path/to/dir');
       expect(mockGitImpl.getDefaultBranchName).toBeCalledTimes(1);
       expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
       expect(mockGitImpl.diffRange).toHaveBeenCalledWith(
@@ -136,9 +133,9 @@ describe('Branch changes', () => {
       );
       expect(res).toEqual(
         new Set([
-          `${mockRootDir}/abs/path/to/repo/File.txt`,
-          `${mockRootDir}/abs/path/to/repo/AnotherClass.txt`,
-          `${mockRootDir}/abs/path/to/repo/SomeFile.txt`,
+          `${mockRootDir}/File.txt`,
+          `${mockRootDir}/AnotherClass.txt`,
+          `${mockRootDir}/SomeFile.txt`,
         ])
       );
     });
@@ -176,14 +173,13 @@ describe('Branch changes', () => {
       const res = await getDiffRange('./some/path/to/dir', 'ref1', 'ref2');
 
       //Then
-      expect(mockedGit).toHaveBeenCalledWith('./some/path/to/dir');
       expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
       expect(mockGitImpl.diffRange).toHaveBeenCalledWith('ref1', 'ref2');
       expect(res).toEqual(
         new Set([
-          `${mockRootDir}/abs/path/to/repo/File.txt`,
-          `${mockRootDir}/abs/path/to/repo/AnotherClass.txt`,
-          `${mockRootDir}/abs/path/to/repo/SomeFile.txt`,
+          `${mockRootDir}/File.txt`,
+          `${mockRootDir}/AnotherClass.txt`,
+          `${mockRootDir}/SomeFile.txt`,
         ])
       );
     });
@@ -218,11 +214,8 @@ describe('Branch changes', () => {
       const res = await getLocalChanges('./some/path/to/dir');
 
       //Then
-      expect(mockedGit).toHaveBeenCalledWith('./some/path/to/dir');
       expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
-      expect(res).toEqual(
-        new Set([`${mockRootDir}/abs/path/to/repo/SomeFile.txt`])
-      );
+      expect(res).toEqual(new Set([`${mockRootDir}/SomeFile.txt`]));
     });
 
     it('rejects and throws error when op fails', async () => {
@@ -233,6 +226,78 @@ describe('Branch changes', () => {
 
       //When/Then
       await expect(getLocalChanges('./some/path/to/dir')).rejects.toEqual(
+        Error("Getting local changes operation failed. Cause: 'op failed'")
+      );
+    });
+  });
+
+  describe('getDeployableClasses', () => {
+    it('returns the correct set of files', async () => {
+      //Given
+      const pdir = `${mockRootDir}/project/dir`;
+      mockGitImpl.getFilteredStatus.mockImplementation(fn => {
+        const files = [
+          {
+            path: `${pdir}/SomeFile.cls`,
+            working_dir: 'M',
+          },
+        ];
+        return Promise.resolve(
+          new Set(files.filter(fn as () => boolean).map(p => p.path))
+        );
+      });
+
+      //When
+      const res = await getDeployableClasses(pdir, 'orgId');
+
+      //Then
+      expect(mockGitImpl.getFilteredStatus).toBeCalledTimes(1);
+      expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledWith(
+        expect.anything(),
+        [`--git-dir=${pdir}/.sf/orgs/orgId/localSourceTracking`]
+      );
+      expect(res).toEqual(new Set([`${pdir}/SomeFile.cls`]));
+    });
+
+    it('filters non classes and deleted', async () => {
+      //Given
+      const pdir = `${mockRootDir}/project/dir`;
+      mockGitImpl.getFilteredStatus.mockImplementation(fn => {
+        const files = [
+          {
+            path: `${pdir}/SomeFile.txt`,
+            working_dir: 'M',
+          },
+          {
+            path: `${pdir}/SomeFile2.cls`,
+            working_dir: 'D',
+          },
+        ];
+        return Promise.resolve(
+          new Set(files.filter(fn as () => boolean).map(p => p.path))
+        );
+      });
+
+      //When
+      const res = await getDeployableClasses(pdir, 'orgId');
+
+      //Then
+      expect(mockGitImpl.getFilteredStatus).toBeCalledTimes(1);
+      expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledWith(
+        expect.anything(),
+        [`--git-dir=${pdir}/.sf/orgs/orgId/localSourceTracking`]
+      );
+      expect(res).toEqual(new Set());
+    });
+
+    it('rejects and throws error when op fails', async () => {
+      //Given
+      mockGitImpl.getFilteredStatus.mockRejectedValue(Error('op failed'));
+
+      //When/Then
+      await expect(
+        getDeployableClasses('/project/dir', 'orgId')
+      ).rejects.toEqual(
         Error("Getting local changes operation failed. Cause: 'op failed'")
       );
     });

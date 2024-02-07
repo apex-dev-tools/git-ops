@@ -105,7 +105,7 @@ export async function getDeployableClasses(
 }
 
 function resolvePaths(paths: Set<string>, root: string) {
-  const fullPaths = [...paths].map(p => path.resolve(path.join(root, p)));
+  const fullPaths = [...paths].map(p => path.resolve(root, p));
   return new Set(fullPaths);
 }
 
@@ -124,7 +124,7 @@ async function getDiffChanges(
 }
 
 function getTrackingGitDir(projectDir: string, orgId: string): string {
-  return path.join(projectDir, '.sf', 'orgs', orgId, 'localSourceTracking');
+  return path.resolve(projectDir, '.sf', 'orgs', orgId, 'localSourceTracking');
 }
 
 class GitException extends Error {
