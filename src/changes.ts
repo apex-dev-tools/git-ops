@@ -99,6 +99,7 @@ export async function getDeployableClasses(
       f => f.path.endsWith('.cls') && stats.includes(f.working_dir),
       [`--git-dir=${trackingDir}`]
     )
+    .then(changes => resolvePaths(changes, projectDir))
     .catch(er => {
       throw new LocalChangeException(er);
     });
