@@ -92,6 +92,7 @@ export async function getDeployableClasses(
     FileStatus.Added,
     FileStatus.Renamed,
     FileStatus.Copied,
+    FileStatus.Untracked,
   ];
 
   return git
