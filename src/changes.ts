@@ -97,7 +97,7 @@ export async function getDeployableClasses(
   return git
     .getFilteredStatus(
       f => f.path.endsWith('.cls') && stats.includes(f.working_dir),
-      [`--git-dir=${trackingDir}`]
+      trackingDir
     )
     .then(changes => resolvePaths(changes, projectDir))
     .catch(er => {

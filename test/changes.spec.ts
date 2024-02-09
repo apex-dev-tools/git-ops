@@ -285,7 +285,7 @@ describe('Branch changes', () => {
       expect(mockGitImpl.getFilteredStatus).toBeCalledTimes(1);
       expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledWith(
         expect.anything(),
-        [`--git-dir=${pdir}/.sf/orgs/orgId/localSourceTracking`]
+        `${pdir}/.sf/orgs/orgId/localSourceTracking`
       );
       expect(res).toEqual(new Set());
     });

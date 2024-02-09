@@ -2,12 +2,7 @@
  * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
-import {
-  FileStatusResult,
-  SimpleGit,
-  TaskOptions,
-  simpleGit,
-} from 'simple-git';
+import { FileStatusResult, SimpleGit, simpleGit } from 'simple-git';
 
 export enum FileStatus {
   Unmodified = ' ',
@@ -107,10 +102,12 @@ export class Git {
 
   public async getFilteredStatus(
     filterFn: (result: FileStatusResult) => boolean,
-    options?: TaskOptions | undefined
+    gitDir?: string | undefined
   ): Promise<Set<string>> {
     return this.git
-      .then(git => git.status(options))
+      .then(git => {
+        return gitDir ? git.env('GIT_DIR', gitDir).status() : git.status();
+      })
       .then(status => {
         return new Set(...[status.files.filter(filterFn).map(f => f.path)]);
       });
