@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2023 Certinia Inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
-import { OrgTracking } from '../../src';
+import { OrgTracking, OrgTrackingLogger } from '../src';
 import { Org, SfProject } from '@salesforce/core';
-import { Logger } from '../../src/';
 
 const mockGetStatusData = [
   {
@@ -143,7 +142,7 @@ describe('OrgTracking', () => {
     jest.clearAllMocks();
   });
 
-  const mockLogger: Logger = {
+  const mockLogger: OrgTrackingLogger = {
     logDeployProgress: jest.fn(),
     logError: jest.fn(),
     logMessage: jest.fn(),

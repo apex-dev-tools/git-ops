@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
 import simpleGit, { SimpleGit } from 'simple-git';
 import fs from 'fs';
 import path from 'path';
 
-export class RepoManager {
+export class RepoHelper {
   private isInit = false;
   private rootDir: string;
   private remoteRepoDir: string;
   private testRepoDir: string;
-  private static instances: Map<string, RepoManager> = new Map();
+  private static instances: Map<string, RepoHelper> = new Map();
 
   private constructor(rootDir: string) {
     this.rootDir = rootDir;
@@ -19,12 +19,15 @@ export class RepoManager {
     this.testRepoDir = rootDir + '/test-repo';
   }
 
-  public static getInstance(rootDir: string): RepoManager {
-    if (!this.instances.has(rootDir)) {
-      this.instances.set(rootDir, new RepoManager(rootDir));
+  public static getInstance(rootDir: string): RepoHelper {
+    let mng = this.instances.get(rootDir);
+    if (!mng) {
+      mng = new RepoHelper(rootDir);
+      this.instances.set(rootDir, mng);
     }
-    return this.instances.get(rootDir)!;
+    return mng;
   }
+
   private get git(): SimpleGit {
     if (!this.isInit) {
       throw new Error('Cannot perform git operation before calling init()');
@@ -90,16 +93,16 @@ export class RepoManager {
     return this.stageAll(files).then(() => this.git.commit('commit message'));
   }
 
-  async tearDown() {
-    await fs.promises.rm(this.rootDir, { recursive: true, force: true });
+  tearDown() {
+    fs.rmSync(this.rootDir, { recursive: true, force: true });
   }
 
-  async createOrUpdateFile(fileName: string, content: string) {
+  createOrUpdateFile(fileName: string, content: string) {
     const fPath = path.join(this.testRepoDir, fileName);
     if (fs.existsSync(fPath)) {
-      await fs.promises.appendFile(fPath, content);
+      fs.appendFileSync(fPath, content);
     } else {
-      await fs.promises.writeFile(fPath, content);
+      fs.writeFileSync(fPath, content);
     }
   }
 

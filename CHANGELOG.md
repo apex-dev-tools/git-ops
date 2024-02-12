@@ -1,5 +1,9 @@
 # git-ops - Changelog
 
+## 1.4.0 - 2024-02-07
+
+- Add `getDeployableClasses` API for native based tracking
+
 ## 1.3.0 - 2023-10-13
 
 - Upgrade SF Core dependencies

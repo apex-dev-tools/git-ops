@@ -1,58 +1,58 @@
 /*
- * Copyright (c) 2023, FinancialForce.com, inc. All rights reserved.
+ * Copyright (c) 2024 Certinia Inc. All rights reserved.
  */
 
 import path from 'path';
 import { SimpleGit } from 'simple-git';
-import { Git } from '../../src/Git/Git';
-import { RepoManager } from '../FsUtils/RepoManager';
+import { Git } from '../src';
+import { RepoHelper } from './helpers/repo';
 
 describe('Git', () => {
   const dir = './test/repos';
-  const repoManager = RepoManager.getInstance(dir);
+  const repoHelper = RepoHelper.getInstance(dir);
 
   beforeEach(async () => {
-    await repoManager.init();
+    await repoHelper.init();
   });
 
-  afterEach(async () => {
-    await repoManager.tearDown();
+  afterEach(() => {
+    repoHelper.tearDown();
   });
 
   describe('version check', () => {
     it('does not fail when Git version is equal to 2.20.0', () => {
       //Given/When
-      const mock = ({
+      const mock = {
         version: jest.fn().mockReturnValue({
           installed: true,
           major: 2,
           minor: 20,
           patch: 0,
         }),
-      } as unknown) as SimpleGit;
+      } as unknown as SimpleGit;
 
       expect(Git.versionCheck(mock)).resolves;
     });
 
     it('does not fail when Git version is higher', () => {
       //Given/When
-      const mock = ({
+      const mock = {
         version: jest.fn().mockReturnValue({
           installed: true,
           major: 2,
           minor: 30,
           patch: 2,
         }),
-      } as unknown) as SimpleGit;
+      } as unknown as SimpleGit;
       //Then
       expect(Git.versionCheck(mock)).resolves;
     });
 
     it('fails when Git is not installed', async () => {
       //Given/When
-      const mock = ({
+      const mock = {
         version: jest.fn().mockReturnValue({ installed: false }),
-      } as unknown) as SimpleGit;
+      } as unknown as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
@@ -62,12 +62,12 @@ describe('Git', () => {
 
     it('fails when Git major version is lower', async () => {
       //Given/When
-      const mock = ({
+      const mock = {
         version: jest.fn().mockReturnValue({
           installed: true,
           major: 1,
         }),
-      } as unknown) as SimpleGit;
+      } as unknown as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
@@ -77,13 +77,13 @@ describe('Git', () => {
 
     it('fails when Git minor version is lower', async () => {
       //Given/When
-      const mock = ({
+      const mock = {
         version: jest.fn().mockReturnValue({
           installed: true,
           major: 2,
           minor: 19,
         }),
-      } as unknown) as SimpleGit;
+      } as unknown as SimpleGit;
 
       //Then
       await expect(Git.versionCheck(mock)).rejects.toThrow(
@@ -94,8 +94,8 @@ describe('Git', () => {
 
   describe('rev parse', () => {
     it('get git root', async () => {
-      const repoDirPath = path.resolve(repoManager.repoDir);
-      const revParse = await new Git(repoManager.repoDir).gitRoot();
+      const repoDirPath = path.resolve(repoHelper.repoDir);
+      const revParse = await new Git(repoHelper.repoDir).gitRoot();
       expect(revParse).toBe(repoDirPath);
     });
   });
@@ -104,7 +104,7 @@ describe('Git', () => {
     it('fails to find default branch name when head is not set', async () => {
       //Given/When/Then
       await expect(
-        new Git(repoManager.repoDir).getDefaultBranchName()
+        new Git(repoHelper.repoDir).getDefaultBranchName()
       ).rejects.toThrow(
         Error(
           "Failed to find symbolic ref no remote HEAD with message: 'fatal: ref refs/remotes/origin/HEAD is not a symbolic ref'"
@@ -114,15 +114,16 @@ describe('Git', () => {
 
     it('find default branch name when head is set', async () => {
       //Given
-      await repoManager
-        .createOrUpdateFile('file.txt', 'Test Text')
-        .then(() => repoManager.stageAndCommitAll(['file.txt']))
-        .then(() => repoManager.push())
-        .then(() => repoManager.setHead());
+      repoHelper.createOrUpdateFile('file.txt', 'Test Text');
+
+      await repoHelper
+        .stageAndCommitAll(['file.txt'])
+        .then(() => repoHelper.push())
+        .then(() => repoHelper.setHead());
 
       //When
       const branchName = await new Git(
-        repoManager.repoDir
+        repoHelper.repoDir
       ).getDefaultBranchName();
 
       //Then
@@ -131,15 +132,16 @@ describe('Git', () => {
 
     it('find default branch name when head is set', async () => {
       //Given
-      await repoManager
-        .createOrUpdateFile('file.txt', 'Test Text')
-        .then(() => repoManager.stageAndCommitAll(['file.txt']))
-        .then(() => repoManager.push())
-        .then(() => repoManager.setHead());
+      repoHelper.createOrUpdateFile('file.txt', 'Test Text');
+
+      await repoHelper
+        .stageAndCommitAll(['file.txt'])
+        .then(() => repoHelper.push())
+        .then(() => repoHelper.setHead());
 
       //When
       const branchName = await new Git(
-        repoManager.repoDir
+        repoHelper.repoDir
       ).getDefaultBranchName();
 
       //Then
@@ -149,19 +151,20 @@ describe('Git', () => {
 
   describe('file change operations', () => {
     beforeEach(async () => {
-      await repoManager
-        .createOrUpdateFile('file.txt', 'text')
-        .then(() => repoManager.stageAndCommitAll(['file.txt']))
-        .then(() => repoManager.push())
-        .then(() => repoManager.setHead());
+      repoHelper.createOrUpdateFile('file.txt', 'text');
+
+      await repoHelper
+        .stageAndCommitAll(['file.txt'])
+        .then(() => repoHelper.push())
+        .then(() => repoHelper.setHead());
     });
     describe('local changes', () => {
       it('finds modified files', async () => {
         //Given
-        await repoManager.createOrUpdateFile('file.txt', 'modify');
+        repoHelper.createOrUpdateFile('file.txt', 'modify');
         //When
         const files = await new Git(
-          repoManager.repoDir
+          repoHelper.repoDir
         ).getLocalChangedAndCreated();
         //Then
         expect(files).toEqual(new Set(['file.txt']));
@@ -169,11 +172,11 @@ describe('Git', () => {
 
       it('finds unstaged renamed files', async () => {
         //Given
-        repoManager.renameFileInRepo('file.txt', 'renamed.txt');
-        // await repoManager.gitStage();
+        repoHelper.renameFileInRepo('file.txt', 'renamed.txt');
+        // await repoHelper.gitStage();
         //When
         const files = await new Git(
-          repoManager.repoDir
+          repoHelper.repoDir
         ).getLocalChangedAndCreated();
         //Then
         expect(files).toEqual(new Set(['renamed.txt']));
@@ -181,10 +184,10 @@ describe('Git', () => {
 
       it('finds unstaged new files', async () => {
         //Given
-        await repoManager.createOrUpdateFile('newFile.txt', 'content');
+        repoHelper.createOrUpdateFile('newFile.txt', 'content');
         //When
         const files = await new Git(
-          repoManager.repoDir
+          repoHelper.repoDir
         ).getLocalChangedAndCreated();
         //Then
         expect(files).toEqual(new Set(['newFile.txt']));
@@ -192,10 +195,10 @@ describe('Git', () => {
 
       it('does not include deleted files', async () => {
         //Given
-        repoManager.rmFile('file.txt');
+        repoHelper.rmFile('file.txt');
         //When
         const files = await new Git(
-          repoManager.repoDir
+          repoHelper.repoDir
         ).getLocalChangedAndCreated();
         //Then
         expect(files).toEqual(new Set());
@@ -203,20 +206,19 @@ describe('Git', () => {
 
       it('finds staged renamed, modified and new files ', async () => {
         //Setup for renamed file
-        await repoManager
-          .createOrUpdateFile('second.txt', 'txt')
-          .then(() => repoManager.stageAndCommitAll(['second.txt']));
+        repoHelper.createOrUpdateFile('second.txt', 'txt');
+        await repoHelper.stageAndCommitAll(['second.txt']);
 
         //Given
-        await repoManager
-          .createOrUpdateFile('file.txt', 'modifiy')
-          .then(() => repoManager.renameFileInRepo('second.txt', 'renamed.txt'))
-          .then(() => repoManager.createOrUpdateFile('newFile.txt', 'content'))
-          .then(() => repoManager.stageAll());
+        repoHelper.createOrUpdateFile('file.txt', 'modifiy');
+        repoHelper.renameFileInRepo('second.txt', 'renamed.txt');
+        repoHelper.createOrUpdateFile('newFile.txt', 'content');
+
+        await repoHelper.stageAll();
 
         //When
         const files = await new Git(
-          repoManager.repoDir
+          repoHelper.repoDir
         ).getLocalChangedAndCreated();
 
         //Then
@@ -228,21 +230,19 @@ describe('Git', () => {
 
     describe('branch diff changes', () => {
       beforeEach(async () => {
-        await repoManager
+        await repoHelper
           .checkout('dev', 'main')
-          .then(() => repoManager.createOrUpdateFile('newFile.txt', 'text'))
-          .then(() => repoManager.stageAndCommitAll(['newFile.txt']));
+          .then(() => repoHelper.createOrUpdateFile('newFile.txt', 'text'))
+          .then(() => repoHelper.stageAndCommitAll(['newFile.txt']));
       });
       it('finds diff against for default branch and HEAD', async () => {
         //Given
-        await repoManager
-          .createOrUpdateFile('anotherFileForCommit.txt', 'text')
-          .then(() =>
-            repoManager.stageAndCommitAll(['anotherFileForCommit.txt'])
-          );
+        repoHelper.createOrUpdateFile('anotherFileForCommit.txt', 'text');
+
+        await repoHelper.stageAndCommitAll(['anotherFileForCommit.txt']);
 
         //When
-        const files = await new Git(repoManager.repoDir).diffRange(
+        const files = await new Git(repoHelper.repoDir).diffRange(
           'origin/main',
           'HEAD'
         );
@@ -255,16 +255,13 @@ describe('Git', () => {
 
       it('finds diff against default branch and commit ref', async () => {
         //Given
-        const currentRef = (await repoManager.getGitLog())[0].hash;
+        const currentRef = (await repoHelper.getGitLog())[0].hash;
+        repoHelper.createOrUpdateFile('anotherFileForCommit.txt', 'text');
 
-        await repoManager
-          .createOrUpdateFile('anotherFileForCommit.txt', 'text')
-          .then(() =>
-            repoManager.stageAndCommitAll(['anotherFileForCommit.txt'])
-          );
+        await repoHelper.stageAndCommitAll(['anotherFileForCommit.txt']);
 
         //When
-        const files = await new Git(repoManager.repoDir).diffRange(
+        const files = await new Git(repoHelper.repoDir).diffRange(
           'origin/main',
           currentRef
         );
