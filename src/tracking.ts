@@ -5,7 +5,12 @@
 import { Org, Connection, SfProject } from '@salesforce/core';
 import { cwd, chdir } from 'process';
 import { StatusOutputRow, SourceTracking } from '@salesforce/source-tracking';
-import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet,
+  ComponentStatus,
+  DeployResult,
+  MetadataApiDeployStatus,
+} from '@salesforce/source-deploy-retrieve';
 
 export enum FileState {
   Added = 'add',
@@ -103,34 +108,66 @@ export class OrgTracking {
     return await this.withWorkingDir<void>(
       this.options.projectDir,
       async () => {
-        return this.deploy(paths)
-          .then(res => this.updateSourceTracking(res))
-          .catch(e => this.logger.logError(e));
+        try {
+          this.logger.logDeployProgress('Starting deploy');
+          const result = await this.deploy(paths);
+
+          if (result.response.success) {
+            await this.updateSourceTracking(result);
+          } else {
+            this.reportDeployErrors(result);
+          }
+          this.logger.logDeployProgress('Finished deploy');
+        } catch (e) {
+          this.logger.logError(e);
+        }
       }
     );
   }
 
   private async deploy(paths: Array<string>): Promise<DeployResult> {
-    const set = ComponentSet.fromSource(paths);
-
-    const deploy = await set.deploy({
+    const deploy = await ComponentSet.fromSource(paths).deploy({
       usernameOrConnection: this.options.connection,
     });
-    this.logger.logDeployProgress('Starting deploy');
-    deploy.onUpdate(response => {
-      const { status, numberComponentsDeployed, numberComponentsTotal } =
-        response;
-      const progress = `${numberComponentsDeployed}/${numberComponentsTotal}`;
-      const message = `Status: ${status} Progress: ${progress}`;
-      this.logger.logDeployProgress(message);
-    });
-    return await deploy.pollStatus().then(res => {
-      this.logger.logMessage('Finished deploy');
-      return res;
-    });
+
+    deploy.onUpdate(response => this.reportDeployStatus(response));
+
+    const result = await deploy.pollStatus();
+
+    this.reportDeployStatus(result.response);
+
+    return result;
   }
 
-  private async updateSourceTracking(result: DeployResult) {
+  private reportDeployStatus(response: MetadataApiDeployStatus) {
+    const {
+      status,
+      numberComponentsDeployed,
+      numberComponentsTotal,
+      numberComponentErrors,
+    } = response;
+    const progress = `${numberComponentsDeployed}/${numberComponentsTotal}`;
+    const message = `Status: ${status} | Progress: ${progress} | Errors: ${numberComponentErrors}`;
+    this.logger.logDeployProgress(message);
+  }
+
+  private reportDeployErrors(result: DeployResult) {
+    const errors = result.getFileResponses().reduce((a, c) => {
+      if (c.state === ComponentStatus.Failed) {
+        a.push(new Error(`${c.fullName}: ${c.error}`));
+      }
+      return a;
+    }, [] as Error[]);
+
+    if (errors.length) {
+      this.logger.logDeployProgress('Deploy errors:');
+      errors.forEach(err => this.logger.logError(err));
+    }
+  }
+
+  private async updateSourceTracking(result: DeployResult): Promise<void> {
+    this.logger.logDeployProgress('Starting source tracking update');
+
     const project = SfProject.getInstance(this.options.projectDir);
     const org = await Org.create({ connection: this.options.connection });
     const tracking = await SourceTracking.create({
@@ -139,6 +176,8 @@ export class OrgTracking {
       ignoreLocalCache: true,
     });
     await tracking.updateTrackingFromDeploy(result);
+
+    this.logger.logDeployProgress('Finished source tracking update');
   }
 
   private toSyncStatusRow(from: StatusOutputRow) {

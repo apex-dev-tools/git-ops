@@ -1,5 +1,9 @@
 # git-ops - Changelog
 
+## 1.4.1 - 2024-11-22
+
+- Fix missing deploy error reporting
+
 ## 1.4.0 - 2024-02-07
 
 - Add `getDeployableClasses` API for native based tracking
