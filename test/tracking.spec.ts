@@ -102,7 +102,7 @@ const mockDeploy = {
     .mockImplementation(() => Promise.resolve(mockDeployResult)),
 };
 
-const mockDeployResult = { done: true };
+const mockDeployResult = { response: { success: true } };
 const mockComponentSet = {
   deploy: jest
     .fn()
