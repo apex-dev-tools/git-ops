@@ -1,6 +1,6 @@
 {
   "name": "@apexdevtools/git-ops",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Library to do git operations to find changed files in a given git repository",
   "author": {
     "name": "Apex Dev Tools Team",
