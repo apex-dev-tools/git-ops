@@ -45,7 +45,7 @@ export class Git {
 
   private get git(): Promise<SimpleGit> {
     if (this.gitInstance) return Promise.resolve(this.gitInstance);
-    //eslint-disable-next-line
+     
     const git: SimpleGit = simpleGit(this.dir);
     return Git.versionCheck(git).then(() => {
       this.gitInstance = git;
@@ -102,7 +102,7 @@ export class Git {
 
   public async getFilteredStatus(
     filterFn: (result: FileStatusResult) => boolean,
-    gitDir?: string | undefined
+    gitDir?: string  
   ): Promise<Set<string>> {
     return this.git
       .then(git => {

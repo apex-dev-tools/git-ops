@@ -1,5 +1,9 @@
 # git-ops - Changelog
 
+## 1.4.2 - 2026-06-14
+
+- Refresh TypeScript, lint, package manager, and GitHub Actions tooling.
+
 ## 1.4.1 - 2024-11-22
 
 - Fix missing deploy error reporting

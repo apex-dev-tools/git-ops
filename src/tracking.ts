@@ -59,8 +59,12 @@ export class OrgTracking {
   }
 
   public async getLocalStatus(withConflicts = false): Promise<SyncStatus> {
-    const project = SfProject.getInstance(this.options.projectDir);
-    const org = await Org.create({ connection: this.options.connection });
+    // source-tracking currently brings its own @salesforce/core type graph,
+    // so keep the runtime object and relax the compile-time boundary here.
+    const project = SfProject.getInstance(this.options.projectDir) as any;
+    const org = (await Org.create({
+      connection: this.options.connection,
+    })) as any;
 
     return await this.withWorkingDir<SyncStatus>(
       this.options.projectDir,
@@ -127,7 +131,7 @@ export class OrgTracking {
 
   private async deploy(paths: Array<string>): Promise<DeployResult> {
     const deploy = await ComponentSet.fromSource(paths).deploy({
-      usernameOrConnection: this.options.connection,
+      usernameOrConnection: this.options.connection as any,
     });
 
     deploy.onUpdate(response => this.reportDeployStatus(response));
@@ -168,8 +172,10 @@ export class OrgTracking {
   private async updateSourceTracking(result: DeployResult): Promise<void> {
     this.logger.logDeployProgress('Starting source tracking update');
 
-    const project = SfProject.getInstance(this.options.projectDir);
-    const org = await Org.create({ connection: this.options.connection });
+    const project = SfProject.getInstance(this.options.projectDir) as any;
+    const org = (await Org.create({
+      connection: this.options.connection,
+    })) as any;
     const tracking = await SourceTracking.create({
       org,
       project,

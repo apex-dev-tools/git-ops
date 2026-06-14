@@ -60,8 +60,8 @@ describe('Branch changes', () => {
       );
 
       //Then
-      expect(mockGitImpl.getDefaultBranchName).toBeCalledTimes(1);
-      expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
+      expect(mockGitImpl.getDefaultBranchName).toHaveBeenCalledTimes(1);
+      expect(mockGitImpl.getLocalChangedAndCreated).toHaveBeenCalledTimes(1);
       expect(mockGitImpl.diffRange).toHaveBeenCalledWith(
         'default/branch/name',
         'abc12fcd'
@@ -125,8 +125,8 @@ describe('Branch changes', () => {
       const res = await getDefaultBranchDiff('./some/path/to/dir');
 
       //Then
-      expect(mockGitImpl.getDefaultBranchName).toBeCalledTimes(1);
-      expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
+      expect(mockGitImpl.getDefaultBranchName).toHaveBeenCalledTimes(1);
+      expect(mockGitImpl.getLocalChangedAndCreated).toHaveBeenCalledTimes(1);
       expect(mockGitImpl.diffRange).toHaveBeenCalledWith(
         'default/branch/name',
         'HEAD'
@@ -173,7 +173,7 @@ describe('Branch changes', () => {
       const res = await getDiffRange('./some/path/to/dir', 'ref1', 'ref2');
 
       //Then
-      expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
+      expect(mockGitImpl.getLocalChangedAndCreated).toHaveBeenCalledTimes(1);
       expect(mockGitImpl.diffRange).toHaveBeenCalledWith('ref1', 'ref2');
       expect(res).toEqual(
         new Set([
@@ -214,7 +214,7 @@ describe('Branch changes', () => {
       const res = await getLocalChanges('./some/path/to/dir');
 
       //Then
-      expect(mockGitImpl.getLocalChangedAndCreated).toBeCalledTimes(1);
+      expect(mockGitImpl.getLocalChangedAndCreated).toHaveBeenCalledTimes(1);
       expect(res).toEqual(new Set([`${mockRootDir}/SomeFile.txt`]));
     });
 
@@ -251,7 +251,7 @@ describe('Branch changes', () => {
       const res = await getDeployableClasses(pdir, 'orgId');
 
       //Then
-      expect(mockGitImpl.getFilteredStatus).toBeCalledTimes(1);
+      expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledTimes(1);
       expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledWith(
         expect.anything(),
         `${pdir}/.sf/orgs/orgId/localSourceTracking`
@@ -282,7 +282,7 @@ describe('Branch changes', () => {
       const res = await getDeployableClasses(pdir, 'orgId');
 
       //Then
-      expect(mockGitImpl.getFilteredStatus).toBeCalledTimes(1);
+      expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledTimes(1);
       expect(mockGitImpl.getFilteredStatus).toHaveBeenCalledWith(
         expect.anything(),
         `${pdir}/.sf/orgs/orgId/localSourceTracking`
