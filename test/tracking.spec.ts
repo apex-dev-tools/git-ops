@@ -175,7 +175,7 @@ describe('OrgTracking', () => {
         local: true,
         remote: false,
       });
-      expect(mockSourceTracking.getConflicts).not.toBeCalled();
+      expect(mockSourceTracking.getConflicts).not.toHaveBeenCalled();
       expect(res).toEqual({
         local: [
           {
@@ -247,7 +247,7 @@ describe('OrgTracking', () => {
         local: true,
         remote: false,
       });
-      expect(mockSourceTracking.getConflicts).toBeCalled();
+      expect(mockSourceTracking.getConflicts).toHaveBeenCalled();
       expect(res).toEqual({
         local: [
           {
@@ -326,7 +326,9 @@ describe('OrgTracking', () => {
         mockDeployResult
       );
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(mockLogger.logDeployProgress).toBeCalledWith('Starting deploy');
+      expect(mockLogger.logDeployProgress).toHaveBeenCalledWith(
+        'Starting deploy'
+      );
     });
   });
 });
